@@ -1,13 +1,32 @@
 ---
+export const prerender = false;
+
+import { actions } from "astro:actions";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import SubmissionForm from "../components/SubmissionForm.astro";
+import { languages } from "../config";
+
+const result = Astro.getActionResult(actions.submit);
+const success = result && !result.error;
+const errors = result?.error?.fields;
+
+const langKeys = Object.keys(languages);
 ---
 
 <BaseLayout title="Submit a Word">
-    <h1 class="text-2xl font-bold mb-2">Submit a Word</h1>
-    <p class="text-stone-500 text-sm mb-8">
-        Suggest a new word of the day. Submissions are reviewed before being
-        published.
-    </p>
-    <SubmissionForm />
+  <!-- Hidden form for Netlify Forms detection at deploy time -->
+  <form name="word-submission" data-netlify="true" hidden>
+    <input name="word" />
+    <input name="meaning" />
+    <input name="partOfSpeech" />
+    <input name="favourite" />
+    {langKeys.map((key) => <input name={key} />)}
+  </form>
+
+  <h1 class="text-2xl font-bold mb-2">Submit a Word</h1>
+  <p class="text-stone-500 text-sm mb-8">
+    Suggest a new word of the day. Submissions are reviewed before being
+    published.
+  </p>
+  <SubmissionForm success={success} errors={errors} />
 </BaseLayout>
