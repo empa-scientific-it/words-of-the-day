@@ -20,6 +20,9 @@
     "marked": "^17.0.5",
     "tailwindcss": "^4.2.2"
   },
+  "overrides": {
+    "vite": "^7"
+  },
   "devDependencies": {
     "csv-parse": "^6.2.1",
     "tsx": "^4.21.0",
