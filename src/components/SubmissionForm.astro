@@ -1,6 +1,6 @@
 ---
 import { actions } from "astro:actions";
-import { languages } from "../config";
+import { languages, partsOfSpeech } from "../config";
 
 interface Props {
     success?: boolean;
@@ -57,9 +57,11 @@ const langEntries = Object.entries(languages);
             required
             class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
         />
-        {errors?.word && (
-            <p class="text-red-600 text-xs mt-1">{errors.word[0]}</p>
-        )}
+        {
+            errors?.word && (
+                <p class="text-red-600 text-xs mt-1">{errors.word[0]}</p>
+            )
+        }
     </div>
 
     <div>
@@ -73,9 +75,11 @@ const langEntries = Object.entries(languages);
             rows="3"
             class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
         ></textarea>
-        {errors?.meaning && (
-            <p class="text-red-600 text-xs mt-1">{errors.meaning[0]}</p>
-        )}
+        {
+            errors?.meaning && (
+                <p class="text-red-600 text-xs mt-1">{errors.meaning[0]}</p>
+            )
+        }
     </div>
 
     <div>
@@ -88,11 +92,7 @@ const langEntries = Object.entries(languages);
             class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
         >
             <option value="">Select...</option>
-            <option value="Noun">Noun</option>
-            <option value="Verb">Verb</option>
-            <option value="Adjective">Adjective</option>
-            <option value="Adverb">Adverb</option>
-            <option value="Preposition">Preposition</option>
+            {partsOfSpeech.map((pos) => <option value={pos}>{pos}</option>)}
         </select>
     </div>
 
@@ -101,10 +101,7 @@ const langEntries = Object.entries(languages);
         {
             langEntries.map(([key, { name, emoji }]) => (
                 <div>
-                    <label
-                        for={key}
-                        class="block text-xs text-stone-500 mb-1"
-                    >
+                    <label for={key} class="block text-xs text-stone-500 mb-1">
                         {emoji} {name}
                     </label>
                     <input
@@ -117,6 +114,19 @@ const langEntries = Object.entries(languages);
             ))
         }
     </fieldset>
+
+    <div>
+        <label for="body" class="block text-sm font-medium mb-1">Notes</label>
+        <p class="text-xs text-stone-400 mb-1">
+            Examples, usage notes, etymology — Markdown supported.
+        </p>
+        <textarea
+            id="body"
+            name="body"
+            rows="4"
+            class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-stone-400"
+        ></textarea>
+    </div>
 
     <div class="flex items-center gap-2">
         <input
