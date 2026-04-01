@@ -49,6 +49,6 @@ export const submitInputSchema = wordFieldsSchema
     partOfSpeech: z.enum(partsOfSpeech).optional(),
     body: z.string().optional(),
   })
-  .and(languagesInputSchema);
+  .merge(languagesInputSchema);
 
 export type SubmitInput = z.infer<typeof submitInputSchema>;
