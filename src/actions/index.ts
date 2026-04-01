@@ -1,17 +1,11 @@
 import { defineAction, ActionError } from "astro:actions";
-import { z } from "astro/zod";
 import { Octokit } from "octokit";
-import { languages, type LanguageKey } from "../config";
+import { stringify } from "yaml";
+import { submitInputSchema, languageKeys, type SubmitInput } from "../schema";
 
 const REPO_OWNER = "edoardob90";
 const REPO_NAME = "words-of-the-day";
 const BASE_BRANCH = "main";
-
-const languageKeys = Object.keys(languages) as LanguageKey[];
-
-const langFields = Object.fromEntries(
-  languageKeys.map((k) => [k, z.string().optional()]),
-);
 
 function slugify(word: string): string {
   return word
@@ -20,48 +14,38 @@ function slugify(word: string): string {
     .replace(/[^a-z0-9-]/g, "");
 }
 
-function buildMarkdown(input: Record<string, unknown>): string {
-  const word = input.word as string;
-  const slug = slugify(word);
-  const lines: string[] = ["---"];
+function buildMarkdown(input: SubmitInput): string {
+  const slug = slugify(input.word);
 
-  lines.push(`word: ${word}`);
-  lines.push(`slug: ${slug}`);
-  if (input.meaning) lines.push(`meaning: ${JSON.stringify(input.meaning)}`);
-  if (input.partOfSpeech) {
-    lines.push("partOfSpeech:");
-    lines.push(`  - ${input.partOfSpeech}`);
+  const frontmatter: Record<string, unknown> = {
+    word: input.word,
+    slug,
+  };
+
+  if (input.meaning) frontmatter.meaning = input.meaning;
+  if (input.partOfSpeech) frontmatter.partOfSpeech = [input.partOfSpeech];
+  if (input.origin) frontmatter.origin = input.origin;
+
+  const langs: Record<string, string> = {};
+  for (const k of languageKeys) {
+    const val = input[k as keyof SubmitInput] as string | undefined;
+    if (val) langs[k] = val;
   }
+  if (Object.keys(langs).length > 0) frontmatter.languages = langs;
 
-  const langs = languageKeys.filter((k) => input[k]);
-  if (langs.length > 0) {
-    lines.push("languages:");
-    for (const k of langs) {
-      lines.push(`  ${k}: ${input[k]}`);
-    }
-  }
+  frontmatter.favourite = input.favourite ?? false;
+  frontmatter.created = new Date().toISOString().split("T")[0];
+  frontmatter.isComplete = Object.keys(langs).length === languageKeys.length;
 
-  lines.push(`favourite: ${input.favourite ?? false}`);
-  lines.push(`created: ${new Date().toISOString().split("T")[0]}`);
-  lines.push(`isComplete: ${langs.length === languageKeys.length}`);
-  lines.push("---");
-
-  return lines.join("\n") + "\n";
+  const body = input.body?.trim() ?? "";
+  return `---\n${stringify(frontmatter)}---\n\n${body}\n`;
 }
 
 export const server = {
   submit: defineAction({
     accept: "form",
-    input: z.object({
-      word: z.string().min(1),
-      meaning: z.string().min(1),
-      partOfSpeech: z
-        .enum(["Noun", "Verb", "Adjective", "Adverb", "Preposition"])
-        .optional(),
-      favourite: z.boolean().optional(),
-      ...langFields,
-    }),
-    handler: async (input) => {
+    input: submitInputSchema,
+    handler: async (input: SubmitInput) => {
       const token = process.env.GITHUB_TOKEN;
       if (!token) {
         throw new ActionError({
@@ -77,14 +61,12 @@ export const server = {
       const content = buildMarkdown(input);
 
       try {
-        // Get the SHA of the base branch HEAD
         const { data: ref } = await octokit.rest.git.getRef({
           owner: REPO_OWNER,
           repo: REPO_NAME,
           ref: `heads/${BASE_BRANCH}`,
         });
 
-        // Create a new branch
         await octokit.rest.git.createRef({
           owner: REPO_OWNER,
           repo: REPO_NAME,
@@ -92,7 +74,6 @@ export const server = {
           sha: ref.object.sha,
         });
 
-        // Create the file on the new branch
         await octokit.rest.repos.createOrUpdateFileContents({
           owner: REPO_OWNER,
           repo: REPO_NAME,
@@ -102,14 +83,13 @@ export const server = {
           branch,
         });
 
-        // Open a PR
         const { data: pr } = await octokit.rest.pulls.create({
           owner: REPO_OWNER,
           repo: REPO_NAME,
           title: `New word: ${input.word}`,
           head: branch,
           base: BASE_BRANCH,
-          body: `Submitted via the website.\n\n**Word:** ${input.word}\n**Meaning:** ${input.meaning}`,
+          body: `Submitted via the website.\n\n**Word:** ${input.word}\n**Meaning:** ${input.meaning ?? "—"}`,
         });
 
         return { success: true, prUrl: pr.html_url };

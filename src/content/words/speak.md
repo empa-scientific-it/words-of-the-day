@@ -1,6 +1,6 @@
 ---
-word: To speak
-slug: to-speak
+word: Speak
+slug: speak
 meaning: To communicate in natural language
 partOfSpeech:
   - Verb

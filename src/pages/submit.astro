@@ -13,7 +13,9 @@ const errors =
         ? result.error.fields
         : undefined;
 const serverError =
-    result?.error && !isInputError(result.error) ? result.error.message : undefined;
+    result?.error && !isInputError(result.error)
+        ? result.error.message
+        : undefined;
 ---
 
 <BaseLayout title="Submit a Word">

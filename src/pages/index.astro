@@ -4,7 +4,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import WordCard from "../components/WordCard.astro";
 
 const words = await getCollection("words");
-words.sort((a, b) => (b.data.created > a.data.created ? 1 : -1));
+words.sort((a, b) => b.data.featured.getTime() - a.data.featured.getTime());
 ---
 
 <BaseLayout>

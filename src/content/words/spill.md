@@ -1,6 +1,6 @@
 ---
-word: To Spill
-slug: to-spill
+word: Spill
+slug: spill
 meaning: Cause or allow (liquid) to flow over the edge of its container
 partOfSpeech:
   - Verb

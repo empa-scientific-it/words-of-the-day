@@ -1,6 +1,6 @@
 ---
-word: To forget
-slug: to-forget
+word: Forget
+slug: forget
 meaning: To not remember something
 partOfSpeech:
   - Verb

@@ -1,6 +1,6 @@
 ---
-word: To enlighten
-slug: to-enlighten
+word: Enlighten
+slug: enlighten
 partOfSpeech:
   - Verb
 languages:
