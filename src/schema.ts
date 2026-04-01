@@ -55,3 +55,10 @@ export const submitInputSchema = z.object({
 });
 
 export type SubmitInput = z.infer<typeof submitInputSchema>;
+
+/** Update schema — same fields plus slug to identify the row */
+export const updateInputSchema = submitInputSchema.extend({
+  slug: z.string().min(1),
+});
+
+export type UpdateInput = z.infer<typeof updateInputSchema>;

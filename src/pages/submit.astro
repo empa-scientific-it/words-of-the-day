@@ -3,12 +3,11 @@ export const prerender = false;
 
 import { actions, isInputError } from "astro:actions";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import SubmissionForm from "../components/SubmissionForm.astro";
+import WordForm from "../components/WordForm.astro";
 
 const result = Astro.getActionResult(actions.submit);
 const success = result && !result.error;
-const prUrl = success ? result.data?.prUrl : undefined;
-const debug = success ? result.data?.debug : undefined;
+const slug = success ? result.data?.slug : undefined;
 const errors =
     result?.error && isInputError(result.error)
         ? result.error.fields
@@ -25,10 +24,10 @@ const serverError =
         Suggest a new word of the day. Submissions are reviewed before being
         published.
     </p>
-    <SubmissionForm
+    <WordForm
+        action="submit"
         success={success}
-        prUrl={prUrl}
-        debug={debug}
+        slug={slug}
         errors={errors}
         serverError={serverError}
     />

@@ -2,44 +2,50 @@
 import { actions } from "astro:actions";
 import { languages, partsOfSpeech } from "../config";
 
+interface WordData {
+    slug: string;
+    word: string;
+    meaning?: string | null;
+    partOfSpeech?: unknown;
+    origin?: string | null;
+    languages?: unknown;
+    favourite?: boolean;
+    body?: string | null;
+}
+
 interface Props {
+    action: "submit" | "update";
+    word?: WordData;
     success?: boolean;
-    prUrl?: string;
-    debug?: { input: Record<string, unknown>; slug: string; branch: string; filePath: string; markdown: string };
+    slug?: string;
     errors?: Record<string, string[] | undefined>;
     serverError?: string;
 }
 
-const { success, prUrl, debug, errors, serverError } = Astro.props;
+const { action, word, success, slug, errors, serverError } = Astro.props;
+
+const isEdit = action === "update";
+const formAction = isEdit ? actions.update : actions.submit;
 const langEntries = Object.entries(languages);
+
+const pos = word?.partOfSpeech as string[] | undefined;
+const currentPos = pos?.[0] ?? "";
+const currentLangs = (word?.languages ?? {}) as Record<string, string>;
 ---
 
 {
     success && (
         <div class="bg-green-50 border border-green-200 text-green-800 rounded-lg px-4 py-3 mb-6 text-sm">
-            Word submitted!
-            {prUrl && (
+            {isEdit ? "Word updated!" : "Word saved!"}
+            {(slug || word?.slug) && (
                 <a
-                    href={prUrl}
-                    target="_blank"
-                    rel="noopener"
+                    href={`/${slug || word?.slug}`}
                     class="underline font-medium ml-1"
                 >
-                    View the pull request &rarr;
+                    View it &rarr;
                 </a>
             )}
         </div>
-    )
-}
-
-{
-    debug && (
-        <details open class="bg-violet-50 border border-violet-200 rounded-lg px-4 py-3 mb-6 text-sm">
-            <summary class="font-medium text-violet-800 cursor-pointer">
-                Dev: {debug.filePath} &rarr; branch <code>{debug.branch}</code>
-            </summary>
-            <pre class="mt-3 p-3 bg-white border border-violet-100 rounded text-xs overflow-x-auto whitespace-pre-wrap">{debug.markdown}</pre>
-        </details>
     )
 }
 
@@ -59,7 +65,9 @@ const langEntries = Object.entries(languages);
     )
 }
 
-<form method="POST" action={actions.submit} class="space-y-6">
+<form method="POST" action={formAction} class="space-y-6">
+    {isEdit && <input type="hidden" name="slug" value={word!.slug} />}
+
     <div>
         <label for="word" class="block text-sm font-medium mb-1">Word *</label>
         <input
@@ -67,6 +75,7 @@ const langEntries = Object.entries(languages);
             id="word"
             name="word"
             required
+            value={word?.word ?? ""}
             class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
         />
         {
@@ -77,34 +86,35 @@ const langEntries = Object.entries(languages);
     </div>
 
     <div>
-        <label for="meaning" class="block text-sm font-medium mb-1"
-            >Meaning *</label
-        >
+        <label for="meaning" class="block text-sm font-medium mb-1">
+            Meaning
+        </label>
         <textarea
             id="meaning"
             name="meaning"
-            required
             rows="3"
             class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
-        ></textarea>
-        {
-            errors?.meaning && (
-                <p class="text-red-600 text-xs mt-1">{errors.meaning[0]}</p>
-            )
-        }
+            >{word?.meaning ?? ""}</textarea
+        >
     </div>
 
     <div>
-        <label for="partOfSpeech" class="block text-sm font-medium mb-1"
-            >Part of Speech</label
-        >
+        <label for="partOfSpeech" class="block text-sm font-medium mb-1">
+            Part of Speech
+        </label>
         <select
             id="partOfSpeech"
             name="partOfSpeech"
             class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
         >
             <option value="">Select...</option>
-            {partsOfSpeech.map((pos) => <option value={pos}>{pos}</option>)}
+            {
+                partsOfSpeech.map((p) => (
+                    <option value={p} selected={p === currentPos}>
+                        {p}
+                    </option>
+                ))
+            }
         </select>
     </div>
 
@@ -120,6 +130,7 @@ const langEntries = Object.entries(languages);
                         type="text"
                         id={key}
                         name={key}
+                        value={currentLangs[key] ?? ""}
                         class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
                     />
                 </div>
@@ -137,7 +148,8 @@ const langEntries = Object.entries(languages);
             name="body"
             rows="4"
             class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-stone-400"
-        ></textarea>
+            >{word?.body ?? ""}</textarea
+        >
     </div>
 
     <div class="flex items-center gap-2">
@@ -145,15 +157,30 @@ const langEntries = Object.entries(languages);
             type="checkbox"
             id="favourite"
             name="favourite"
+            checked={word?.favourite ?? false}
             class="rounded"
         />
         <label for="favourite" class="text-sm">Mark as favourite</label>
     </div>
 
-    <button
-        type="submit"
-        class="bg-stone-900 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-stone-700 transition-colors"
-    >
-        Submit Word
-    </button>
+    <div class="flex items-center justify-between">
+        <button
+            type="submit"
+            class="bg-stone-900 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-stone-700 transition-colors"
+        >
+            {isEdit ? "Save Changes" : "Submit Word"}
+        </button>
+        {
+            isEdit && (
+                <button
+                    type="submit"
+                    formaction={`${actions.remove}`}
+                    class="bg-red-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+                    onclick="return confirm('Delete this word permanently?')"
+                >
+                    Delete
+                </button>
+            )
+        }
+    </div>
 </form>

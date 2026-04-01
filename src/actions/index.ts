@@ -1,11 +1,13 @@
 import { defineAction, ActionError } from "astro:actions";
-import { Octokit } from "octokit";
-import { stringify } from "yaml";
-import { submitInputSchema, languageKeys, type SubmitInput } from "../schema";
-
-const REPO_OWNER = "edoardob90";
-const REPO_NAME = "words-of-the-day";
-const BASE_BRANCH = "main";
+import { z } from "astro/zod";
+import { db, Words, eq } from "astro:db";
+import {
+  submitInputSchema,
+  updateInputSchema,
+  languageKeys,
+  type SubmitInput,
+  type UpdateInput,
+} from "../schema";
 
 function slugify(word: string): string {
   return word
@@ -14,31 +16,13 @@ function slugify(word: string): string {
     .replace(/[^a-z0-9-]/g, "");
 }
 
-function buildMarkdown(input: SubmitInput): string {
-  const slug = slugify(input.word);
-
-  const frontmatter: Record<string, unknown> = {
-    word: input.word,
-    slug,
-  };
-
-  if (input.meaning) frontmatter.meaning = input.meaning;
-  if (input.partOfSpeech) frontmatter.partOfSpeech = [input.partOfSpeech];
-  if (input.origin) frontmatter.origin = input.origin;
-
+function buildLangs(input: Record<string, unknown>): Record<string, string> {
   const langs: Record<string, string> = {};
   for (const k of languageKeys) {
-    const val = input[k as keyof SubmitInput] as string | undefined;
+    const val = input[k as string] as string | undefined;
     if (val) langs[k] = val;
   }
-  if (Object.keys(langs).length > 0) frontmatter.languages = langs;
-
-  frontmatter.favourite = input.favourite ?? false;
-  frontmatter.created = new Date().toISOString().split("T")[0];
-  frontmatter.isComplete = Object.keys(langs).length === languageKeys.length;
-
-  const body = input.body?.trim() ?? "";
-  return `---\n${stringify(frontmatter)}---\n\n${body}\n`;
+  return langs;
 }
 
 export const server = {
@@ -47,67 +31,81 @@ export const server = {
     input: submitInputSchema,
     handler: async (input: SubmitInput) => {
       const slug = slugify(input.word);
-      const branch = `word/${slug}`;
-      const filePath = `src/content/words/${slug}.md`;
-      const content = buildMarkdown(input);
+      const now = new Date();
+      const langs = buildLangs(input);
 
-      if (import.meta.env.DEV) {
-        console.log("[dev] Validated input:", JSON.stringify(input, null, 2));
-        console.log("[dev] Generated markdown:\n" + content);
-        return {
-          success: true,
-          debug: { input, slug, branch, filePath, markdown: content },
-        };
-      }
-
-      const token = process.env.GITHUB_TOKEN;
-      if (!token) {
-        throw new ActionError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "GITHUB_TOKEN not configured",
-        });
-      }
-
-      const octokit = new Octokit({ auth: token });
+      const row = {
+        slug,
+        word: input.word,
+        meaning: input.meaning ?? null,
+        partOfSpeech: input.partOfSpeech ? [input.partOfSpeech] : [],
+        origin: input.origin ?? null,
+        languages: langs,
+        favourite: input.favourite ?? false,
+        created: now,
+        featured: now,
+        isComplete: Object.keys(langs).length === languageKeys.length,
+        relatedWords: [] as string[],
+        body: input.body?.trim() || null,
+      };
 
       try {
-        const { data: ref } = await octokit.rest.git.getRef({
-          owner: REPO_OWNER,
-          repo: REPO_NAME,
-          ref: `heads/${BASE_BRANCH}`,
-        });
-
-        await octokit.rest.git.createRef({
-          owner: REPO_OWNER,
-          repo: REPO_NAME,
-          ref: `refs/heads/${branch}`,
-          sha: ref.object.sha,
-        });
-
-        await octokit.rest.repos.createOrUpdateFileContents({
-          owner: REPO_OWNER,
-          repo: REPO_NAME,
-          path: filePath,
-          message: `Add word: ${input.word}`,
-          content: Buffer.from(content).toString("base64"),
-          branch,
-        });
-
-        const { data: pr } = await octokit.rest.pulls.create({
-          owner: REPO_OWNER,
-          repo: REPO_NAME,
-          title: `New word: ${input.word}`,
-          head: branch,
-          base: BASE_BRANCH,
-          body: `Submitted via the website.\n\n**Word:** ${input.word}\n**Meaning:** ${input.meaning ?? "—"}`,
-        });
-
-        return { success: true, prUrl: pr.html_url };
+        await db.insert(Words).values(row);
+        return { success: true, slug };
       } catch (err) {
-        console.error("[submit] GitHub API error:", err);
+        console.error("[submit] DB insert error:", err);
         throw new ActionError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to create pull request. Please try again.",
+          message: "Failed to save word. It may already exist.",
+        });
+      }
+    },
+  }),
+
+  update: defineAction({
+    accept: "form",
+    input: updateInputSchema,
+    handler: async (input: UpdateInput) => {
+      const langs = buildLangs(input);
+
+      try {
+        await db
+          .update(Words)
+          .set({
+            word: input.word,
+            meaning: input.meaning ?? null,
+            partOfSpeech: input.partOfSpeech ? [input.partOfSpeech] : [],
+            origin: input.origin ?? null,
+            languages: langs,
+            favourite: input.favourite ?? false,
+            isComplete: Object.keys(langs).length === languageKeys.length,
+            body: input.body?.trim() || null,
+          })
+          .where(eq(Words.slug, input.slug));
+
+        return { success: true, slug: input.slug };
+      } catch (err) {
+        console.error("[update] DB update error:", err);
+        throw new ActionError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update word.",
+        });
+      }
+    },
+  }),
+
+  remove: defineAction({
+    accept: "form",
+    input: z.object({ slug: z.string().min(1) }),
+    handler: async ({ slug }) => {
+      try {
+        await db.delete(Words).where(eq(Words.slug, slug));
+        return { success: true };
+      } catch (err) {
+        console.error("[remove] DB delete error:", err);
+        throw new ActionError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to delete word.",
         });
       }
     },

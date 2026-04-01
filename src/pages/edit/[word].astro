@@ -1,0 +1,54 @@
+---
+export const prerender = false;
+
+import { actions, isInputError } from "astro:actions";
+import { getWordBySlug } from "../../lib/words";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import WordForm from "../../components/WordForm.astro";
+
+const slug = Astro.params.word!;
+
+const deleteResult = Astro.getActionResult(actions.remove);
+if (deleteResult && !deleteResult.error) {
+    return Astro.redirect("/");
+}
+
+const word = await getWordBySlug(slug);
+if (!word) return Astro.redirect("/404");
+
+const updateResult = Astro.getActionResult(actions.update);
+
+const success = updateResult && !updateResult.error;
+const errors =
+    updateResult?.error && isInputError(updateResult.error)
+        ? updateResult.error.fields
+        : undefined;
+const serverError =
+    updateResult?.error && !isInputError(updateResult.error)
+        ? updateResult.error.message
+        : deleteResult?.error
+          ? deleteResult.error.message
+          : undefined;
+---
+
+<BaseLayout title={`Edit: ${word.word}`}>
+    <div class="flex items-center justify-between mb-2">
+        <h1 class="text-2xl font-bold">Edit: {word.word}</h1>
+        <a
+            href={`/${slug}`}
+            class="text-sm text-stone-500 hover:text-stone-700"
+        >
+            View &rarr;
+        </a>
+    </div>
+    <p class="text-stone-500 text-sm mb-8">
+        Update this word or delete it entirely.
+    </p>
+    <WordForm
+        action="update"
+        word={word}
+        success={success}
+        errors={errors}
+        serverError={serverError}
+    />
+</BaseLayout>

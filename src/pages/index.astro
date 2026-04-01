@@ -1,25 +1,26 @@
 ---
-import { getCollection } from "astro:content";
+export const prerender = false;
+
+import { getAllWords, enrichLanguages } from "../lib/words";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import WordCard from "../components/WordCard.astro";
 
-const words = await getCollection("words");
-words.sort((a, b) => b.data.featured.getTime() - a.data.featured.getTime());
+const words = await getAllWords();
 ---
 
 <BaseLayout>
     <h1 class="text-2xl font-bold mb-6">All Words</h1>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         {
-            words.map(({ data }) => (
+            words.map((w) => (
                 <WordCard
-                    word={data.word}
-                    slug={data.slug}
-                    meaning={data.meaning}
-                    partOfSpeech={data.partOfSpeech}
-                    languages={data.languages}
-                    favourite={data.favourite}
-                    featured={data.featured}
+                    word={w.word}
+                    slug={w.slug}
+                    meaning={w.meaning ?? undefined}
+                    partOfSpeech={w.partOfSpeech as string[]}
+                    languages={enrichLanguages(w.languages as Record<string, string>)}
+                    favourite={w.favourite}
+                    featured={w.featured}
                 />
             ))
         }

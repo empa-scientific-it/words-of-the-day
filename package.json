@@ -12,16 +12,17 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/db": "^0.20.1",
     "@astrojs/netlify": "^7.0.5",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.2.2",
     "astro": "^6.1.2",
-    "octokit": "^5.0.5",
-    "tailwindcss": "^4.2.2",
-    "yaml": "^2.8.3"
+    "marked": "^17.0.5",
+    "tailwindcss": "^4.2.2"
   },
   "devDependencies": {
     "csv-parse": "^6.2.1",
-    "tsx": "^4.21.0"
+    "tsx": "^4.21.0",
+    "yaml": "^2.8.3"
   }
 }
