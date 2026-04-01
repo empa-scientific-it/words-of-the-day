@@ -62,7 +62,7 @@ export const server = {
       ...langFields,
     }),
     handler: async (input) => {
-      const token = import.meta.env.GITHUB_TOKEN;
+      const token = process.env.GITHUB_TOKEN;
       if (!token) {
         throw new ActionError({
           code: "INTERNAL_SERVER_ERROR",
