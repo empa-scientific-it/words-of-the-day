@@ -46,6 +46,20 @@ export const server = {
     accept: "form",
     input: submitInputSchema,
     handler: async (input: SubmitInput) => {
+      const slug = slugify(input.word);
+      const branch = `word/${slug}`;
+      const filePath = `src/content/words/${slug}.md`;
+      const content = buildMarkdown(input);
+
+      if (import.meta.env.DEV) {
+        console.log("[dev] Validated input:", JSON.stringify(input, null, 2));
+        console.log("[dev] Generated markdown:\n" + content);
+        return {
+          success: true,
+          debug: { input, slug, branch, filePath, markdown: content },
+        };
+      }
+
       const token = process.env.GITHUB_TOKEN;
       if (!token) {
         throw new ActionError({
@@ -55,10 +69,6 @@ export const server = {
       }
 
       const octokit = new Octokit({ auth: token });
-      const slug = slugify(input.word);
-      const branch = `word/${slug}`;
-      const filePath = `src/content/words/${slug}.md`;
-      const content = buildMarkdown(input);
 
       try {
         const { data: ref } = await octokit.rest.git.getRef({

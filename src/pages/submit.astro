@@ -8,6 +8,7 @@ import SubmissionForm from "../components/SubmissionForm.astro";
 const result = Astro.getActionResult(actions.submit);
 const success = result && !result.error;
 const prUrl = success ? result.data?.prUrl : undefined;
+const debug = success ? result.data?.debug : undefined;
 const errors =
     result?.error && isInputError(result.error)
         ? result.error.fields
@@ -27,6 +28,7 @@ const serverError =
     <SubmissionForm
         success={success}
         prUrl={prUrl}
+        debug={debug}
         errors={errors}
         serverError={serverError}
     />

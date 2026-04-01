@@ -31,8 +31,8 @@ export const languagesSchema = z
       }),
   );
 
-/** Raw languages shape (before transform) — used for form input validation */
-export const languagesInputSchema = z.object(langShape).optional().default({});
+/** Raw languages shape — flat keys, all optional strings */
+export const languagesInputShape = langShape;
 
 /** Shared fields that appear in both frontmatter and form submission */
 export const wordFieldsSchema = z.object({
@@ -44,11 +44,14 @@ export const wordFieldsSchema = z.object({
 });
 
 /** Form submission schema — single POS (from select), optional body, flat language fields */
-export const submitInputSchema = wordFieldsSchema
-  .extend({
-    partOfSpeech: z.enum(partsOfSpeech).optional(),
-    body: z.string().optional(),
-  })
-  .and(languagesInputSchema);
+export const submitInputSchema = z.object({
+  word: z.string().min(1),
+  meaning: z.string().optional(),
+  partOfSpeech: z.enum(partsOfSpeech).optional(),
+  favourite: z.boolean().optional(),
+  origin: z.string().optional(),
+  body: z.string().optional(),
+  ...languagesInputShape,
+});
 
 export type SubmitInput = z.infer<typeof submitInputSchema>;

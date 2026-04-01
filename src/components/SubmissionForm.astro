@@ -5,11 +5,12 @@ import { languages, partsOfSpeech } from "../config";
 interface Props {
     success?: boolean;
     prUrl?: string;
+    debug?: { input: Record<string, unknown>; slug: string; branch: string; filePath: string; markdown: string };
     errors?: Record<string, string[] | undefined>;
     serverError?: string;
 }
 
-const { success, prUrl, errors, serverError } = Astro.props;
+const { success, prUrl, debug, errors, serverError } = Astro.props;
 const langEntries = Object.entries(languages);
 ---
 
@@ -28,6 +29,17 @@ const langEntries = Object.entries(languages);
                 </a>
             )}
         </div>
+    )
+}
+
+{
+    debug && (
+        <details open class="bg-violet-50 border border-violet-200 rounded-lg px-4 py-3 mb-6 text-sm">
+            <summary class="font-medium text-violet-800 cursor-pointer">
+                Dev: {debug.filePath} &rarr; branch <code>{debug.branch}</code>
+            </summary>
+            <pre class="mt-3 p-3 bg-white border border-violet-100 rounded text-xs overflow-x-auto whitespace-pre-wrap">{debug.markdown}</pre>
+        </details>
     )
 }
 
