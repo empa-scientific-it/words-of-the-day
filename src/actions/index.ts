@@ -1,5 +1,5 @@
 import { defineAction } from "astro:actions";
-import { z } from "astro:schema";
+import { z } from "astro/zod";
 import { languages, type LanguageKey } from "../config";
 
 const languageKeys = Object.keys(languages) as LanguageKey[];
