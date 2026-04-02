@@ -30,6 +30,7 @@ const bodyHtml = word.body ? (marked.parse(word.body) as string) : "";
         partOfSpeech={word.partOfSpeech as string[]}
         languages={enrichLanguages(word.languages as Record<string, string>)}
         favourite={word.favourite}
+        isComplete={word.isComplete}
         created={word.created}
         featured={word.featured}
         relatedWords={word.relatedWords as string[]}

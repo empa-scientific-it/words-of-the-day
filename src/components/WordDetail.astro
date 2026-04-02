@@ -1,128 +1,135 @@
 ---
 import PartOfSpeechBadge from "./PartOfSpeechBadge.astro";
+import { Star, CircleAlert } from "@lucide/astro";
 
 interface Props {
-    word: string;
-    meaning?: string;
-    partOfSpeech: string[];
-    languages: { name: string; emoji: string; word: string; note?: string }[];
-    favourite: boolean;
-    created: Date;
-    featured: Date;
-    relatedWords: string[];
-    origin?: string;
+  word: string;
+  meaning?: string;
+  partOfSpeech: string[];
+  languages: { name: string; emoji: string; word: string; note?: string }[];
+  favourite: boolean;
+  isComplete: boolean;
+  created: Date;
+  featured: Date;
+  relatedWords: string[];
+  origin?: string;
 }
 
 const {
-    word,
-    meaning,
-    partOfSpeech,
-    languages,
-    favourite,
-    created,
-    featured,
-    relatedWords,
-    origin,
+  word,
+  meaning,
+  partOfSpeech,
+  languages,
+  favourite,
+  isComplete,
+  created,
+  featured,
+  relatedWords,
+  origin,
 } = Astro.props;
 
 const fmt = (d: Date) =>
-    d.toLocaleDateString("en-GB", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-    });
+  d.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 ---
 
 <article>
-    <div class="flex items-baseline gap-3 mb-4">
-        <h1 class="text-3xl font-bold tracking-tight">{word}</h1>
-        {
-            favourite && (
-                <span class="text-2xl text-amber-500" title="Favourite">
-                    &#9733;
-                </span>
-            )
-        }
-    </div>
-
-    <div class="flex gap-2 mb-6">
-        {partOfSpeech.map((pos) => <PartOfSpeechBadge pos={pos} />)}
-    </div>
-
+  <div class="flex items-baseline gap-3 mb-4">
+    <h1 class="text-3xl font-bold tracking-tight">{word}</h1>
     {
-        meaning && (
-            <p class="text-lg text-stone-700 mb-8 leading-relaxed">{meaning}</p>
-        )
+      favourite && (
+        <span class="text-amber-500" title="Favourite">
+          <Star size={20} fill="currentColor" />
+        </span>
+      )
     }
-
-    <section class="space-y-3 mb-8">
-        <h2
-            class="text-sm font-semibold text-stone-500 uppercase tracking-wider"
+    {
+      !isComplete && (
+        <span
+          class="inline-flex items-center gap-1 text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full"
+          title="Incomplete: missing translations"
         >
-            Translations
+          <CircleAlert size={12} /> incomplete
+        </span>
+      )
+    }
+  </div>
+
+  <div class="flex gap-2 mb-6">
+    {partOfSpeech.map((pos) => <PartOfSpeechBadge pos={pos} />)}
+  </div>
+
+  {
+    meaning && (
+      <p class="text-lg text-stone-700 mb-8 leading-relaxed">{meaning}</p>
+    )
+  }
+
+  <section class="space-y-3 mb-8">
+    <h2 class="text-sm font-semibold text-stone-500 uppercase tracking-wider">
+      Translations
+    </h2>
+    {
+      languages.length > 0 ? (
+        languages.map((lang) => (
+          <div class="flex items-baseline gap-3">
+            <span class="text-lg" title={lang.name}>
+              {lang.emoji}
+            </span>
+            <span class="font-medium">{lang.word}</span>
+            {lang.note && (
+              <span class="text-sm text-stone-500 italic">({lang.note})</span>
+            )}
+          </div>
+        ))
+      ) : (
+        <p class="text-sm text-stone-400 italic">No translations yet.</p>
+      )
+    }
+  </section>
+
+  {
+    origin && (
+      <section class="mb-8">
+        <h2 class="text-sm font-semibold text-stone-500 uppercase tracking-wider mb-2">
+          Origin
         </h2>
-        {
-            languages.length > 0 ? (
-                languages.map((lang) => (
-                    <div class="flex items-baseline gap-3">
-                        <span class="text-lg" title={lang.name}>
-                            {lang.emoji}
-                        </span>
-                        <span class="font-medium">{lang.word}</span>
-                        {lang.note && (
-                            <span class="text-sm text-stone-500 italic">
-                                ({lang.note})
-                            </span>
-                        )}
-                    </div>
-                ))
-            ) : (
-                <p class="text-sm text-stone-400 italic">
-                    No translations yet.
-                </p>
-            )
-        }
-    </section>
+        <p class="text-stone-700">{origin}</p>
+      </section>
+    )
+  }
 
-    {
-        origin && (
-            <section class="mb-8">
-                <h2 class="text-sm font-semibold text-stone-500 uppercase tracking-wider mb-2">
-                    Origin
-                </h2>
-                <p class="text-stone-700">{origin}</p>
-            </section>
-        )
-    }
+  <div class="prose prose-sm prose-stone mb-8">
+    <slot />
+  </div>
 
-    <div class="prose prose-sm prose-stone mb-8">
-        <slot />
-    </div>
+  {
+    relatedWords.length > 0 && (
+      <section class="mb-8">
+        <h2 class="text-sm font-semibold text-stone-500 uppercase tracking-wider mb-2">
+          Related
+        </h2>
+        <div class="flex gap-2">
+          {relatedWords.map((slug) => (
+            <a
+              href={`/${slug}`}
+              class="text-sm px-3 py-1 bg-stone-100 rounded-full hover:bg-stone-200 transition-colors capitalize"
+            >
+              {slug.replace(/-/g, " ")}
+            </a>
+          ))}
+        </div>
+      </section>
+    )
+  }
 
-    {
-        relatedWords.length > 0 && (
-            <section class="mb-8">
-                <h2 class="text-sm font-semibold text-stone-500 uppercase tracking-wider mb-2">
-                    Related
-                </h2>
-                <div class="flex gap-2">
-                    {relatedWords.map((slug) => (
-                        <a
-                            href={`/${slug}`}
-                            class="text-sm px-3 py-1 bg-stone-100 rounded-full hover:bg-stone-200 transition-colors capitalize"
-                        >
-                            {slug.replace(/-/g, " ")}
-                        </a>
-                    ))}
-                </div>
-            </section>
-        )
-    }
-
-    <footer
-        class="text-xs text-stone-400 border-t border-stone-100 pt-4 flex gap-4"
-    >
-        <span>Added {fmt(created)}</span>
-        <span>Featured {fmt(featured)}</span>
-    </footer>
+  <footer
+    class="text-xs text-stone-400 border-t border-stone-100 pt-4 flex gap-4"
+  >
+    <span>Added {fmt(created)}</span>
+    <span>Featured {fmt(featured)}</span>
+  </footer>
 </article>

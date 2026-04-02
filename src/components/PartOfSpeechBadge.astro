@@ -1,17 +1,30 @@
 ---
+import { Box, Zap, Palette, Gauge, ArrowRightLeft } from "@lucide/astro";
+
 interface Props {
     pos: string;
 }
 
 const { pos } = Astro.props;
+
+const icons: Record<string, typeof Box> = {
+    Noun: Box,
+    Verb: Zap,
+    Adjective: Palette,
+    Adverb: Gauge,
+    Preposition: ArrowRightLeft,
+};
+
+const Icon = icons[pos];
 ---
 
 <span
     class:list={[
-        "inline-block text-xs font-medium px-2 py-0.5 rounded-full",
+        "inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full",
         { [pos.toLowerCase()]: true },
     ]}
 >
+    {Icon && <Icon size={12} />}
     {pos}
 </span>
 
