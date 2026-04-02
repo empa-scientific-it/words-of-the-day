@@ -13,23 +13,35 @@ const filter = Astro.url.searchParams.get("filter") ?? undefined;
 
 // Fetch words based on the search query param
 const allWords = await getWords({ q });
-const posCounts = getPosCounts(allWords);
 
+// 1. Apply status filter first
+let filteredWords = allWords;
+if (filter === "incomplete")
+  filteredWords = filteredWords.filter((w) => !w.isComplete);
+if (filter === "starred")
+  filteredWords = filteredWords.filter((w) => w.favourite);
+
+// 2. POS counts reflect the active status filter
+const posCounts = getPosCounts(filteredWords);
+
+// 3. Status counts always reflect the full (search-filtered) list
 const incompleteCount = allWords.filter((w) => !w.isComplete).length;
 const starredCount = allWords.filter((w) => w.favourite).length;
 
-// Apply filter and POS in memory
-let words = allWords;
-if (filter === "incomplete") words = words.filter((w) => !w.isComplete);
-if (filter === "starred") words = words.filter((w) => w.favourite);
-if (pos)
-  words = words.filter((w) => (w.partOfSpeech as string[]).includes(pos));
+// 4. Apply POS filter for display
+const words = pos
+  ? filteredWords.filter((w) => (w.partOfSpeech as string[]).includes(pos))
+  : filteredWords;
 
-function chipHref(opts?: { pos?: string; filter?: string }) {
+function chipHref(
+  overrides: { pos?: string | null; filter?: string | null } = {},
+) {
   const params = new URLSearchParams();
   if (q) params.set("q", q);
-  if (opts?.pos) params.set("pos", opts.pos);
-  if (opts?.filter) params.set("filter", opts.filter);
+  const newFilter = overrides.filter !== undefined ? overrides.filter : filter;
+  const newPos = overrides.pos !== undefined ? overrides.pos : pos;
+  if (newFilter) params.set("filter", newFilter);
+  if (newPos) params.set("pos", newPos);
   const qs = params.toString();
   return qs ? `/?${qs}` : "/";
 }
@@ -52,19 +64,30 @@ function chipHref(opts?: { pos?: string; filter?: string }) {
 
     <div class="flex flex-wrap items-center justify-between gap-2">
       <div class="flex flex-wrap gap-2">
-        <FilterChip href={chipHref()} active={!filter && !pos}>
+        <FilterChip
+          href={chipHref({ filter: null, pos: null })}
+          active={!filter && !pos}
+        >
           All ({allWords.length})
         </FilterChip>
         {
           incompleteCount !== 0 && (
-            <FilterChip href={chipHref({ filter: "incomplete" })} variant="incomplete" active={filter === "incomplete"}>
+            <FilterChip
+              href={chipHref({ filter: "incomplete" })}
+              variant="incomplete"
+              active={filter === "incomplete"}
+            >
               Incomplete ({incompleteCount})
             </FilterChip>
           )
         }
         {
           starredCount !== 0 && (
-            <FilterChip href={chipHref({ filter: "starred" })} variant="starred" active={filter === "starred"}>
+            <FilterChip
+              href={chipHref({ filter: "starred" })}
+              variant="starred"
+              active={filter === "starred"}
+            >
               Starred ({starredCount})
             </FilterChip>
           )
@@ -74,7 +97,11 @@ function chipHref(opts?: { pos?: string; filter?: string }) {
         {
           partsOfSpeech.map((p) =>
             posCounts[p] ? (
-              <FilterChip href={chipHref({ pos: p })} variant={p.toLowerCase() as any} active={pos === p}>
+              <FilterChip
+                href={chipHref({ pos: p })}
+                variant={p.toLowerCase() as any}
+                active={pos === p}
+              >
                 {p} ({posCounts[p] ?? 0})
               </FilterChip>
             ) : null,
