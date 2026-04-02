@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig } from "astro/config";
+import { defineConfig, memoryCache } from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
 import netlify from "@astrojs/netlify";
 import db from "@astrojs/db";
@@ -11,4 +11,14 @@ export default defineConfig({
   },
   adapter: netlify(),
   integrations: [db()],
+  experimental: {
+    cache: {
+      provider: memoryCache(),
+    },
+    routeRules: {
+      "/": { maxAge: 86400, swr: 86400, tags: ["words"] },
+      "/[word]": { maxAge: 86400, swr: 86400, tags: ["words"] },
+      "/api/export.json": { maxAge: 86400, swr: 86400, tags: ["words"] },
+    },
+  },
 });

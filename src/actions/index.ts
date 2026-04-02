@@ -29,7 +29,7 @@ export const server = {
   submit: defineAction({
     accept: "form",
     input: submitInputSchema,
-    handler: async (input: SubmitInput) => {
+    handler: async (input: SubmitInput, context) => {
       const slug = slugify(input.word);
       const now = new Date();
       const langs = buildLangs(input);
@@ -52,6 +52,7 @@ export const server = {
 
       try {
         await db.insert(Words).values(row);
+        await context.cache.invalidate({ tags: ["words"] });
         return { success: true, slug };
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
@@ -67,7 +68,7 @@ export const server = {
   update: defineAction({
     accept: "form",
     input: updateInputSchema,
-    handler: async (input: UpdateInput) => {
+    handler: async (input: UpdateInput, context) => {
       const langs = buildLangs(input);
 
       try {
@@ -86,6 +87,7 @@ export const server = {
           })
           .where(eq(Words.slug, input.slug));
 
+        await context.cache.invalidate({ tags: ["words"] });
         return { success: true, slug: input.slug };
       } catch (err) {
         console.error("[update] DB update error:", err);
@@ -100,9 +102,10 @@ export const server = {
   remove: defineAction({
     accept: "form",
     input: z.object({ slug: z.string().min(1) }),
-    handler: async ({ slug }) => {
+    handler: async ({ slug }, context) => {
       try {
         await db.delete(Words).where(eq(Words.slug, slug));
+        await context.cache.invalidate({ tags: ["words"] });
         return { success: true };
       } catch (err) {
         console.error("[remove] DB delete error:", err);
