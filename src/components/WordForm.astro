@@ -96,30 +96,35 @@ const currentFeatured = word?.featured
 
   <fieldset>
     <legend class="block text-sm font-medium mb-2">Part of Speech</legend>
-    <div class="flex flex-wrap gap-2">
-      {
-        partsOfSpeech.map((p) => {
-          const s = posStyles[p];
-          const isChecked = currentPos.includes(p);
-          return (
-            <label class="cursor-pointer pos-chip">
-              <input
-                type="checkbox"
-                name="partOfSpeech"
-                value={p}
-                checked={isChecked}
-                class="sr-only peer"
-              />
-              <span
-                class:list={["chip", isChecked ? s.active : [s.base, s.hover]]}
-              >
-                {p}
-              </span>
-            </label>
-          );
-        })
-      }
-    </div>
+    <pos-picker data-styles={JSON.stringify(posStyles)}>
+      <div class="flex flex-wrap gap-2">
+        {
+          partsOfSpeech.map((p) => {
+            const s = posStyles[p];
+            const isChecked = currentPos.includes(p);
+            return (
+              <label class="cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="partOfSpeech"
+                  value={p}
+                  checked={isChecked}
+                  class="sr-only peer"
+                />
+                <span
+                  class:list={[
+                    "chip",
+                    isChecked ? s.active : [s.base, s.hover],
+                  ]}
+                >
+                  {p}
+                </span>
+              </label>
+            );
+          })
+        }
+      </div>
+    </pos-picker>
   </fieldset>
 
   <fieldset class="space-y-4">
@@ -203,32 +208,38 @@ const currentFeatured = word?.featured
       )
     }
   </div>
-</form>
 
-<style>
-  @reference "tailwindcss";
-  .chip {
-    @apply inline-block text-xs font-medium px-3 py-1 rounded-full transition-colors;
-  }
-</style>
+  <style>
+    @reference "tailwindcss";
+    .chip {
+      @apply inline-block text-xs font-medium px-3 py-1 rounded-full transition-colors;
+    }
+  </style>
 
-<script is:inline define:vars={{ posStyles }}>
-  document.querySelectorAll(".pos-chip input").forEach((input) => {
-    input.addEventListener("change", () => {
-      const span = input.nextElementSibling;
-      const s = posStyles[input.value];
-      if (!s) return;
-      const all = [
-        ...s.base.split(" "),
-        ...s.hover.split(" "),
-        ...s.active.split(" "),
-      ];
-      span.classList.remove(...all);
-      if (input.checked) {
-        span.classList.add(...s.active.split(" "));
-      } else {
-        span.classList.add(...s.base.split(" "), ...s.hover.split(" "));
+  <script>
+    class PosPicker extends HTMLElement {
+      connectedCallback() {
+        const styles = JSON.parse(this.dataset.styles!);
+        this.querySelectorAll("input").forEach((input) => {
+          input.addEventListener("change", () => {
+            const span = input.nextElementSibling as HTMLElement;
+            const s = styles[input.value];
+            if (!s) return;
+            const all = [
+              ...s.base.split(" "),
+              ...s.hover.split(" "),
+              ...s.active.split(" "),
+            ];
+            span.classList.remove(...all);
+            if (input.checked) {
+              span.classList.add(...s.active.split(" "));
+            } else {
+              span.classList.add(...s.base.split(" "), ...s.hover.split(" "));
+            }
+          });
+        });
       }
-    });
-  });
-</script>
+    }
+    customElements.define("pos-picker", PosPicker);
+  </script>
+</form>
