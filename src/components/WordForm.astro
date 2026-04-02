@@ -10,6 +10,7 @@ interface WordData {
     origin?: string | null;
     languages?: unknown;
     favourite?: boolean;
+    featured?: Date;
     body?: string | null;
 }
 
@@ -31,6 +32,9 @@ const langEntries = Object.entries(languages);
 const pos = word?.partOfSpeech as string[] | undefined;
 const currentPos = pos?.[0] ?? "";
 const currentLangs = (word?.languages ?? {}) as Record<string, string>;
+const currentFeatured = word?.featured
+    ? word.featured.toISOString().split("T")[0]
+    : "";
 ---
 
 {
@@ -150,6 +154,22 @@ const currentLangs = (word?.languages ?? {}) as Record<string, string>;
             class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-stone-400"
             >{word?.body ?? ""}</textarea
         >
+    </div>
+
+    <div>
+        <label for="featured" class="block text-sm font-medium mb-1">
+            Featured date
+        </label>
+        <p class="text-xs text-stone-400 mb-1">
+            When this word was picked as word of the day. Defaults to today.
+        </p>
+        <input
+            type="date"
+            id="featured"
+            name="featured"
+            value={currentFeatured}
+            class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
+        />
     </div>
 
     <div class="flex items-center gap-2">

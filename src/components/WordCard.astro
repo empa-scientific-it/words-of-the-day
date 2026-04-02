@@ -8,11 +8,20 @@ interface Props {
     partOfSpeech: string[];
     languages: { name: string; emoji: string; word: string; note?: string }[];
     favourite: boolean;
+    isComplete: boolean;
     featured: Date;
 }
 
-const { word, slug, meaning, partOfSpeech, languages, favourite, featured } =
-    Astro.props;
+const {
+    word,
+    slug,
+    meaning,
+    partOfSpeech,
+    languages,
+    favourite,
+    isComplete,
+    featured,
+} = Astro.props;
 
 const featuredStr = featured.toLocaleDateString("en-GB", {
     day: "numeric",
@@ -29,8 +38,21 @@ const featuredStr = featured.toLocaleDateString("en-GB", {
         <h2 class="text-lg font-semibold leading-tight">{word}</h2>
         <div class="flex items-center gap-2 shrink-0">
             {
+                !isComplete && (
+                    <span
+                        class="text-xs bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full"
+                        title="Incomplete"
+                    >
+                        incomplete
+                    </span>
+                )
+            }
+            {
                 favourite && (
-                    <span class="text-amber-500" title="Favourite">
+                    <span
+                        class="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full"
+                        title="Favourite"
+                    >
                         &#9733;
                     </span>
                 )

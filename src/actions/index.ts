@@ -33,6 +33,7 @@ export const server = {
       const slug = slugify(input.word);
       const now = new Date();
       const langs = buildLangs(input);
+      const featured = input.featured ? new Date(input.featured) : now;
 
       const row = {
         slug,
@@ -43,7 +44,7 @@ export const server = {
         languages: langs,
         favourite: input.favourite ?? false,
         created: now,
-        featured: now,
+        featured,
         isComplete: Object.keys(langs).length === languageKeys.length,
         relatedWords: [] as string[],
         body: input.body?.trim() || null,
@@ -81,6 +82,7 @@ export const server = {
             favourite: input.favourite ?? false,
             isComplete: Object.keys(langs).length === languageKeys.length,
             body: input.body?.trim() || null,
+            ...(input.featured ? { featured: new Date(input.featured) } : {}),
           })
           .where(eq(Words.slug, input.slug));
 

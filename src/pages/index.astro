@@ -20,6 +20,7 @@ const words = await getAllWords();
                     partOfSpeech={w.partOfSpeech as string[]}
                     languages={enrichLanguages(w.languages as Record<string, string>)}
                     favourite={w.favourite}
+                    isComplete={w.isComplete}
                     featured={w.featured}
                 />
             ))

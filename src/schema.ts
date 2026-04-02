@@ -51,6 +51,7 @@ export const submitInputSchema = z.object({
   favourite: z.boolean().optional(),
   origin: z.string().optional(),
   body: z.string().optional(),
+  featured: z.string().optional(),
   ...languagesInputShape,
 });
 
