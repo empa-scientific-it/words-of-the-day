@@ -16,6 +16,7 @@ interface Props {
   favourite: boolean;
   isComplete: boolean;
   created: Date;
+  modified?: Date | null;
   featured: Date;
   relatedWords: string[];
   origin?: string;
@@ -29,6 +30,7 @@ const {
   favourite,
   isComplete,
   created,
+  modified,
   featured,
   relatedWords,
   origin,
@@ -151,6 +153,11 @@ const fmt = (d: Date) =>
     class="text-xs text-stone-400 border-t border-stone-100 pt-4 flex gap-4"
   >
     <span>Added {fmt(created)}</span>
+    {
+      modified && fmt(modified) !== fmt(created) && (
+        <span>Modified {fmt(modified)}</span>
+      )
+    }
     <span>Featured {fmt(featured)}</span>
   </footer>
 </article>

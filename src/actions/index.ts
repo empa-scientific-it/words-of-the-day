@@ -54,6 +54,7 @@ export const server = {
         languages: langs,
         favourite: input.favourite ?? false,
         created: now,
+        modified: now,
         featured,
         isComplete:
           Object.keys(langs).length === languageKeys.length && !!input.meaning,
@@ -97,6 +98,7 @@ export const server = {
               !!input.meaning,
             relatedWords: input.relatedWords ?? [],
             body: input.body?.trim() || null,
+            modified: new Date(),
             ...(input.featured ? { featured: new Date(input.featured) } : {}),
           })
           .where(eq(Words.slug, input.slug));

@@ -12,6 +12,7 @@ export const Words = defineTable({
     created: column.date(),
     featured: column.date(),
     isComplete: column.boolean({ default: false }),
+    modified: column.date({ optional: true }),
     relatedWords: column.json({ default: [] }),
     body: column.text({ optional: true }),
   },

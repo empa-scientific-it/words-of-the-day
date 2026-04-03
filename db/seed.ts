@@ -72,6 +72,9 @@ export default async function seed() {
       created: new Date(r.created as string),
       featured: new Date(r.featured as string),
       isComplete: r.isComplete === 1 || r.isComplete === true,
+      modified: r.modified
+        ? new Date(r.modified as string)
+        : new Date(r.created as string),
       relatedWords,
       body: (r.body as string) ?? null,
     };

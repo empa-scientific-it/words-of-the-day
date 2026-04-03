@@ -161,7 +161,7 @@ const wordsBySlug = new Map(allWords?.map((w) => [w.slug, w.word]));
               />
               <select
                 name={`${key}_gender`}
-                class="border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
+                class="border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <option value="">Gender</option>
                 {genders.map((g) => (
@@ -285,6 +285,22 @@ const wordsBySlug = new Map(allWords?.map((w) => [w.slug, w.word]));
     class PosPicker extends HTMLElement {
       connectedCallback() {
         const styles = JSON.parse(this.dataset.styles!);
+        const form = this.closest("form")!;
+        const genderSelects = form.querySelectorAll<HTMLSelectElement>(
+          "select[name$='_gender']",
+        );
+
+        const syncGenderState = () => {
+          const checked = [
+            ...this.querySelectorAll<HTMLInputElement>("input:checked"),
+          ].map((i) => i.value);
+          const hasNoun = checked.includes("Noun");
+          genderSelects.forEach((sel) => {
+            sel.disabled = !hasNoun;
+            if (!hasNoun) sel.value = "";
+          });
+        };
+
         this.querySelectorAll("input").forEach((input) => {
           input.addEventListener("change", () => {
             const span = input.nextElementSibling as HTMLElement;
@@ -301,8 +317,11 @@ const wordsBySlug = new Map(allWords?.map((w) => [w.slug, w.word]));
             } else {
               span.classList.add(...s.base.split(" "), ...s.hover.split(" "));
             }
+            syncGenderState();
           });
         });
+
+        syncGenderState();
       }
     }
 

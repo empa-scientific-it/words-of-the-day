@@ -33,6 +33,7 @@ const bodyHtml = word.body ? (marked.parse(word.body) as string) : "";
     favourite={word.favourite}
     isComplete={word.isComplete}
     created={word.created}
+    modified={word.modified}
     featured={word.featured}
     relatedWords={word.relatedWords as string[]}
     origin={word.origin ?? undefined}
