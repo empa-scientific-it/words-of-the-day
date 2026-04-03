@@ -2,7 +2,7 @@
 export const prerender = false;
 
 import { actions, isInputError } from "astro:actions";
-import { getWordBySlug, getAllSlugs } from "../../lib/words";
+import { getWords } from "../../lib/words";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import WordForm from "../../components/WordForm.astro";
 
@@ -13,10 +13,9 @@ if (deleteResult && !deleteResult.error) {
   return Astro.redirect("/");
 }
 
-const word = await getWordBySlug(slug);
+const allWords = await getWords();
+const word = allWords.find((w) => w.slug === slug);
 if (!word) return Astro.redirect("/404");
-
-const slugs = await getAllSlugs();
 
 const updateResult = Astro.getActionResult(actions.update);
 
@@ -46,7 +45,7 @@ const serverError =
   <WordForm
     action="update"
     word={word}
-    allWords={slugs}
+    allWords={allWords}
     success={success}
     errors={errors}
     serverError={serverError}
