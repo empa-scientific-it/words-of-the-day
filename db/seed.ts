@@ -32,17 +32,17 @@ export default async function seed() {
     const partOfSpeech =
       typeof r.partOfSpeech === "string"
         ? JSON.parse(r.partOfSpeech)
-        : r.partOfSpeech ?? [];
+        : (r.partOfSpeech ?? []);
 
     const relatedWords =
       typeof r.relatedWords === "string"
         ? JSON.parse(r.relatedWords)
-        : r.relatedWords ?? [];
+        : (r.relatedWords ?? []);
 
     const rawLangs =
       typeof r.languages === "string"
         ? JSON.parse(r.languages)
-        : r.languages ?? {};
+        : (r.languages ?? {});
 
     // Migrate flat strings to structured objects
     const languages: Record<

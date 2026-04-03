@@ -41,11 +41,7 @@ export async function getWords(opts?: { q?: string; pos?: string }) {
         ? conditions[0]
         : and(...conditions);
 
-  return db
-    .select()
-    .from(Words)
-    .where(where)
-    .orderBy(desc(Words.featured));
+  return db.select().from(Words).where(where).orderBy(desc(Words.featured));
 }
 
 export async function getWordBySlug(slug: string) {
@@ -59,10 +55,10 @@ export async function getAllSlugs() {
 
 export function getPosCounts(words: { partOfSpeech: unknown }[]) {
   const counts: Record<string, number> = {};
-  words.map(
-    (w) => (w.partOfSpeech as string[]).map((pos) => {
+  words.map((w) =>
+    (w.partOfSpeech as string[]).map((pos) => {
       counts[pos] = (counts[pos] ?? 0) + 1;
-    })
+    }),
   );
   return counts;
 }

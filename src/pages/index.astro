@@ -121,7 +121,9 @@ function chipHref(
             slug={w.slug}
             meaning={w.meaning ?? undefined}
             partOfSpeech={w.partOfSpeech as string[]}
-            languages={enrichLanguages(w.languages as Record<string, LangEntry>)}
+            languages={enrichLanguages(
+              w.languages as Record<string, LangEntry>,
+            )}
             favourite={w.favourite}
             isComplete={w.isComplete}
             featured={w.featured}

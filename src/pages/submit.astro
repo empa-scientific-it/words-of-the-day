@@ -9,23 +9,21 @@ const result = Astro.getActionResult(actions.submit);
 const success = result && !result.error;
 const slug = success ? result.data?.slug : undefined;
 const errors =
-    result?.error && isInputError(result.error)
-        ? result.error.fields
-        : undefined;
+  result?.error && isInputError(result.error) ? result.error.fields : undefined;
 const serverError =
-    result?.error && !isInputError(result.error)
-        ? result.error.message
-        : undefined;
+  result?.error && !isInputError(result.error)
+    ? result.error.message
+    : undefined;
 ---
 
 <BaseLayout title="Submit a Word">
-    <h1 class="text-2xl font-bold mb-2">Submit a Word</h1>
-    <p class="text-stone-500 text-sm mb-8">Suggest a new word of the day.</p>
-    <WordForm
-        action="submit"
-        success={success}
-        slug={slug}
-        errors={errors}
-        serverError={serverError}
-    />
+  <h1 class="text-2xl font-bold mb-2">Submit a Word</h1>
+  <p class="text-stone-500 text-sm mb-8">Suggest a new word of the day.</p>
+  <WordForm
+    action="submit"
+    success={success}
+    slug={slug}
+    errors={errors}
+    serverError={serverError}
+  />
 </BaseLayout>

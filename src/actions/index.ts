@@ -22,7 +22,9 @@ function buildLangs(input: Record<string, unknown>): Record<string, LangEntry> {
     if (word) {
       const entry: LangEntry = { word };
       const gender = input[`${k}_gender`] as string | undefined;
-      const transliteration = input[`${k}_transliteration`] as string | undefined;
+      const transliteration = input[`${k}_transliteration`] as
+        | string
+        | undefined;
       if (gender) entry.gender = gender;
       if (transliteration) entry.transliteration = transliteration;
       langs[k] = entry;

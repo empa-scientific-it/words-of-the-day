@@ -14,29 +14,29 @@ const bodyHtml = word.body ? (marked.parse(word.body) as string) : "";
 ---
 
 <BaseLayout title={`${word.word} — Word of the Day`}>
-    <div class="flex justify-between items-center mb-6 text-sm">
-        <a href="/" class="text-stone-500 hover:text-stone-700">
-            &larr; Back to all words
-        </a>
-        <a
-            href={`/edit/${word.slug}`}
-            class="text-stone-400 hover:text-stone-600 transition-colors"
-        >
-            Edit &rarr;
-        </a>
-    </div>
-    <WordDetail
-        word={word.word}
-        meaning={word.meaning ?? undefined}
-        partOfSpeech={word.partOfSpeech as string[]}
-        languages={enrichLanguages(word.languages as Record<string, LangEntry>)}
-        favourite={word.favourite}
-        isComplete={word.isComplete}
-        created={word.created}
-        featured={word.featured}
-        relatedWords={word.relatedWords as string[]}
-        origin={word.origin ?? undefined}
+  <div class="flex justify-between items-center mb-6 text-sm">
+    <a href="/" class="text-stone-500 hover:text-stone-700">
+      &larr; Back to all words
+    </a>
+    <a
+      href={`/edit/${word.slug}`}
+      class="text-stone-400 hover:text-stone-600 transition-colors"
     >
-        <Fragment set:html={bodyHtml} />
-    </WordDetail>
+      Edit &rarr;
+    </a>
+  </div>
+  <WordDetail
+    word={word.word}
+    meaning={word.meaning ?? undefined}
+    partOfSpeech={word.partOfSpeech as string[]}
+    languages={enrichLanguages(word.languages as Record<string, LangEntry>)}
+    favourite={word.favourite}
+    isComplete={word.isComplete}
+    created={word.created}
+    featured={word.featured}
+    relatedWords={word.relatedWords as string[]}
+    origin={word.origin ?? undefined}
+  >
+    <Fragment set:html={bodyHtml} />
+  </WordDetail>
 </BaseLayout>
