@@ -1,6 +1,6 @@
 ---
 import "../styles/global.css";
-import { Search } from "@lucide/astro";
+import { Search, GitBranch as Github } from "@lucide/astro";
 
 interface Props {
   title?: string;
@@ -23,12 +23,23 @@ const currentQ = Astro.url.searchParams.get("q") ?? "";
       <nav
         class="max-w-3xl mx-auto px-4 py-4 flex flex-wrap items-center gap-3"
       >
-        <a
-          href="/"
-          class="text-lg font-semibold tracking-tight hover:text-stone-600"
-        >
-          Words of the Day
-        </a>
+        <div class="flex flex-col">
+          <a
+            href="/"
+            class="text-2xl font-semibold tracking-tight hover:text-stone-600"
+          >
+            Words of the Day
+          </a>
+          <a
+            href="https://github.com/empa-scientific-it/words-of-the-day"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center gap-1 mt-1 text-xs text-stone-400 hover:text-stone-600"
+          >
+            <Github size={12} />
+            GitHub repository
+          </a>
+        </div>
         <div class="flex items-center gap-4 text-sm ml-auto">
           <a href="/" class="hover:text-stone-600">Words</a>
           <a href="/submit" class="hover:text-stone-600">Submit</a>
@@ -36,7 +47,7 @@ const currentQ = Astro.url.searchParams.get("q") ?? "";
         <form
           method="GET"
           action="/"
-          class="relative w-full sm:w-auto sm:order-none order-last"
+          class="relative w-full sm:w-auto sm:order-0 order-last"
         >
           <Search
             size={14}
