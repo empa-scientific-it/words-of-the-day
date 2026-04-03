@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+STAGED=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(ts|astro)$')
+
+[ -z "$STAGED" ] && exit 0
+
+echo "Formatting staged files with Prettier..."
+
+echo "$STAGED" | while IFS= read -r file; do
+  npx prettier --write "$file"
+  git add "$file"
+done

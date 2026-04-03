@@ -9,7 +9,10 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "format": "prettier --write 'src/**/*.{ts,astro}' 'db/**/*.ts'",
+    "format:check": "prettier --check 'src/**/*.{ts,astro}' 'db/**/*.ts'",
+    "prepare": "git config core.hooksPath .githooks"
   },
   "dependencies": {
     "@astrojs/db": "^0.20.1",
@@ -26,6 +29,7 @@
   },
   "devDependencies": {
     "csv-parse": "^6.2.1",
+    "prettier": "^3.8.1",
     "prettier-plugin-astro": "^0.14.1",
     "tsx": "^4.21.0"
   }
