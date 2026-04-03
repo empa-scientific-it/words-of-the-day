@@ -4,6 +4,7 @@ export const prerender = false;
 import { actions, isInputError } from "astro:actions";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import WordForm from "../components/WordForm.astro";
+import { getAllSlugs } from "../lib/words";
 
 const result = Astro.getActionResult(actions.submit);
 const success = result && !result.error;
@@ -14,6 +15,7 @@ const serverError =
   result?.error && !isInputError(result.error)
     ? result.error.message
     : undefined;
+const slugs = await getAllSlugs();
 ---
 
 <BaseLayout title="Submit a Word">
@@ -21,6 +23,7 @@ const serverError =
   <p class="text-stone-500 text-sm mb-8">Suggest a new word of the day.</p>
   <WordForm
     action="submit"
+    allWords={slugs}
     success={success}
     slug={slug}
     errors={errors}

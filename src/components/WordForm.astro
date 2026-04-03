@@ -13,18 +13,21 @@ interface WordData {
   favourite?: boolean;
   featured?: Date;
   body?: string | null;
+  relatedWords?: unknown;
 }
 
 interface Props {
   action: "submit" | "update";
   word?: WordData;
+  allWords?: { slug: string; word: string }[];
   success?: boolean;
   slug?: string;
   errors?: Record<string, string[] | undefined>;
   serverError?: string;
 }
 
-const { action, word, success, slug, errors, serverError } = Astro.props;
+const { action, word, allWords, success, slug, errors, serverError } =
+  Astro.props;
 
 const isEdit = action === "update";
 const formAction = isEdit ? actions.update : actions.submit;
@@ -35,6 +38,9 @@ const currentLangs = (word?.languages ?? {}) as Record<string, LangEntry>;
 const currentFeatured = word?.featured
   ? word.featured.toISOString().split("T")[0]
   : "";
+
+const currentRelated = (word?.relatedWords ?? []) as string[];
+const wordsBySlug = new Map(allWords?.map((w) => [w.slug, w.word]));
 ---
 
 {
@@ -186,6 +192,41 @@ const currentFeatured = word?.featured
   </div>
 
   <div>
+    <label for="related-words" class="block text-sm font-medium mb-1"
+      >Related Words</label
+    >
+    <related-picker>
+      <input
+        type="text"
+        list="related-words-list"
+        class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
+      />
+      <div id="relatedWords" class="flex flex-wrap gap-2 mt-2">
+        {
+          currentRelated.map((w) => (
+            <div class="inline-flex">
+              <input type="hidden" name="relatedWords" value={w} />
+              <span class="inline-block text-xs font-medium px-3 py-1 rounded-full bg-stone-100 text-stone-700">
+                {wordsBySlug.get(w) ?? w}
+                <button type="button" class="ml-1" aria-label="Remove">
+                  ×
+                </button>
+              </span>
+            </div>
+          ))
+        }
+      </div>
+    </related-picker>
+    <datalist id="related-words-list">
+      {
+        allWords
+          ?.filter((w) => w.slug !== word?.slug)
+          .map((w) => <option value={w.slug}>{w.word}</option>)
+      }
+    </datalist>
+  </div>
+
+  <div>
     <label for="featured" class="block text-sm font-medium mb-1">
       Featured date
     </label>
@@ -264,6 +305,71 @@ const currentFeatured = word?.featured
         });
       }
     }
+
     customElements.define("pos-picker", PosPicker);
+
+    class RelatedPicker extends HTMLElement {
+      connectedCallback() {
+        const input = this.querySelector(
+          "input[type='text']",
+        ) as HTMLInputElement;
+        const relatedWords = this.querySelector(
+          "#relatedWords",
+        ) as HTMLDivElement;
+        const datalist = document.querySelector(
+          "#related-words-list",
+        ) as HTMLDataListElement;
+
+        // When the user picks a word from the datalist
+        input.addEventListener("change", () => {
+          const slug = input.value.trim();
+          if (!slug) return;
+
+          // Check if not already added
+          const existing = relatedWords.querySelector(`input[value='${slug}']`);
+          if (existing) {
+            input.value = "";
+            return;
+          }
+
+          // Check the slug exists in the datalist
+          const option = datalist.querySelector(`option[value='${slug}']`);
+          if (option) {
+            const displayName = option.textContent ?? slug;
+            const wrapper = document.createElement("div");
+            wrapper.className = "inline-flex";
+            wrapper.innerHTML = `
+              <input type="hidden" name="relatedWords">
+              <span class="inline-block text-xs font-medium px-3 py-1 rounded-full bg-stone-100 text-stone-700">
+                <span class="related-label"></span>
+                <button type="button" class="ml-1" aria-label="Remove">×</button>
+              </span>
+            `;
+            wrapper.querySelector("input")!.value = slug;
+            wrapper.querySelector(".related-label")!.textContent = displayName;
+            relatedWords.appendChild(wrapper);
+            input.value = "";
+          }
+        });
+
+        // "Enter" adds the word instead of submitting the form
+        input.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            input.dispatchEvent(new Event("change"));
+          }
+        });
+
+        // Handle remove button clicks on the container
+        relatedWords.addEventListener("click", (e) => {
+          const target = e.target as HTMLElement;
+          if (target.closest("button")) {
+            target.closest(".inline-flex")?.remove();
+          }
+        });
+      }
+    }
+
+    customElements.define("related-picker", RelatedPicker);
   </script>
 </form>

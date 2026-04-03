@@ -57,7 +57,7 @@ export const server = {
         featured,
         isComplete:
           Object.keys(langs).length === languageKeys.length && !!input.meaning,
-        relatedWords: [] as string[],
+        relatedWords: input.relatedWords ?? [],
         body: input.body?.trim() || null,
       };
 
@@ -95,6 +95,7 @@ export const server = {
             isComplete:
               Object.keys(langs).length === languageKeys.length &&
               !!input.meaning,
+            relatedWords: input.relatedWords ?? [],
             body: input.body?.trim() || null,
             ...(input.featured ? { featured: new Date(input.featured) } : {}),
           })

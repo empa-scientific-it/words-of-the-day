@@ -36,6 +36,7 @@ export const submitInputSchema = z.object({
   word: z.string().min(1),
   meaning: z.string().optional(),
   partOfSpeech: z.array(z.enum(partsOfSpeech)).optional().default([]),
+  relatedWords: z.array(z.string()).optional().default([]),
   favourite: z.boolean().optional(),
   origin: z.string().optional(),
   body: z.string().optional(),

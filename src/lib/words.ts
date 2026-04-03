@@ -51,7 +51,7 @@ export async function getWordBySlug(slug: string) {
 }
 
 export async function getAllSlugs() {
-  return db.select({ slug: Words.slug }).from(Words);
+  return db.select({ slug: Words.slug, word: Words.word }).from(Words);
 }
 
 export function getPosCounts(words: { partOfSpeech: unknown }[]) {
