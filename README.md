@@ -17,12 +17,9 @@ Adding a language requires changes to **one file** and optionally seeding transl
      fr: { name: "French", emoji: "🇫🇷" },  // new
    } as const;
    ```
-   That's it — the form fields, validation schema, and display components all derive from this config automatically.
+   That's all. The form fields, validation schema, and display components all derive from this config automatically.
 
-2. **Add translations** — use the app's submit/edit forms, or bulk-add via `db/seed.ts` by including entries in the `languages` JSON:
-   ```json
-   { "fr": { "word": "mot", "gender": "masculine" } }
-   ```
+2. **Add translations** — use the app's submit/edit forms. The new language fields appear automatically once the config is updated.
 
 > **Note:** Translations are stored as JSON flat strings in a single DB column. Languages not listed in `src/config.ts` are ignored at render time, so incomplete branches won't leak into production.
 
