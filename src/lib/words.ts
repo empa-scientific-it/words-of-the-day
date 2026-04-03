@@ -4,6 +4,7 @@ import type { LangEntry } from "../schema";
 
 export function enrichLanguages(raw: Record<string, LangEntry>) {
   return Object.entries(raw)
+    .filter(([key]) => key in langConfig)
     .filter(([, v]) => v != null)
     .map(([key, entry]) => ({
       lang: key as LanguageKey,
