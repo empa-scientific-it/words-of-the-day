@@ -1,45 +1,48 @@
 [![Netlify Status](https://api.netlify.com/api/v1/badges/3a9266b6-afb8-4df1-8f13-90b64a61af37/deploy-status)](https://app.netlify.com/projects/words-of-the-day/deploys)
 
-# Astro Starter Kit: Minimal
+# Words of the Day
+
+"Words of the Day" project as a standalone app built with Astro, Astro DB (any SQLite-compatible, we're using [Turso](https://turso.tech)), and Tailwind CSS. Currently supports Greek, German, and Italian translations.
+
+## Adding a new language
+
+Adding a language requires changes to **one file** and optionally seeding translations:
+
+1. **`src/config.ts`** — add your language to the `languages` object:
+   ```ts
+   export const languages = {
+     el: { name: "Greek", emoji: "🇬🇷" },
+     de: { name: "German", emoji: "🇩🇪" },
+     it: { name: "Italian", emoji: "🇮🇹" },
+     fr: { name: "French", emoji: "🇫🇷" },  // new
+   } as const;
+   ```
+   That's it — the form fields, validation schema, and display components all derive from this config automatically.
+
+2. **Add translations** — use the app's submit/edit forms, or bulk-add via `db/seed.ts` by including entries in the `languages` JSON:
+   ```json
+   { "fr": { "word": "mot", "gender": "masculine" } }
+   ```
+
+> **Note:** Translations are stored as JSON flat strings in a single DB column. Languages not listed in `src/config.ts` are ignored at render time, so incomplete branches won't leak into production.
+
+Open an [issue](../../issues/new?template=new-language.yml) to propose a new language, or submit a PR directly.
+
+## Development
 
 ```sh
-npm create astro@latest -- --template minimal
+npm install        # also configures the pre-commit formatting hook
+npm run dev        # dev server at localhost:4321
+npm run build      # production build
+npm run format     # format all .ts and .astro files with Prettier
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+Requires Node >= 22.12.0. The production build uses `astro build --remote` to connect to the Turso database.
 
-## 🚀 Project Structure
+### Syncing local DB
 
-Inside of your Astro project, you'll see the following folders and files:
+The local dev database is seeded from `db/exports/Words.json` (git-ignored). To update it with the latest data from the remote Turso DB:
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
-
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
-
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+1. Export the current data from `/api/export.json` (or the Turso dashboard)
+2. Save the output to `db/exports/Words.json`
+3. Restart the dev server. Astro re-runs the seed script `db/seed.ts` on startup
