@@ -1,10 +1,7 @@
 import { z } from "astro/zod";
 import { languages, type LanguageKey, partsOfSpeech, genders } from "./config";
 
-export const languageKeys = Object.keys(languages) as [
-  LanguageKey,
-  ...LanguageKey[],
-];
+export const languageKeys = Object.keys(languages) as LanguageKey[];
 
 /** Per-language structured entry as stored in DB */
 export interface LangEntry {
@@ -13,14 +10,26 @@ export interface LangEntry {
   transliteration?: string;
 }
 
-/** Flat form field names: el_word, el_gender, el_transliteration, etc. */
-const langInputShape = Object.fromEntries(
-  languageKeys.flatMap((k) => [
-    [`${k}_word`, z.string().optional()],
-    [`${k}_gender`, z.enum(genders).optional()],
-    [`${k}_transliteration`, z.string().optional()],
-  ]),
-);
+/** Typed shape for per-language flat form fields (e.g. el_word, el_gender, el_transliteration) */
+const genderSchema = z.enum(genders);
+
+type LangInputShape = {
+  [K in LanguageKey as `${K}_word`]: z.ZodOptional<z.ZodString>;
+} & {
+  [K in LanguageKey as `${K}_gender`]: z.ZodOptional<typeof genderSchema>;
+} & {
+  [K in LanguageKey as `${K}_transliteration`]: z.ZodOptional<z.ZodString>;
+};
+
+function buildLangInputShape(): LangInputShape {
+  const shape: Record<string, z.ZodTypeAny> = {};
+  for (const k of languageKeys) {
+    shape[`${k}_word`] = z.string().optional();
+    shape[`${k}_gender`] = genderSchema.optional();
+    shape[`${k}_transliteration`] = z.string().optional();
+  }
+  return shape as LangInputShape;
+}
 
 /** Form submission schema — multiple POS (from checkboxes), optional body, flat language fields */
 export const submitInputSchema = z.object({
@@ -31,7 +40,7 @@ export const submitInputSchema = z.object({
   origin: z.string().optional(),
   body: z.string().optional(),
   featured: z.string().optional(),
-  ...langInputShape,
+  ...buildLangInputShape(),
 });
 
 export type SubmitInput = z.infer<typeof submitInputSchema>;

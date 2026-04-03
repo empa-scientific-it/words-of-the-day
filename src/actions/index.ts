@@ -6,6 +6,8 @@ import {
   updateInputSchema,
   languageKeys,
   type LangEntry,
+  type SubmitInput,
+  type UpdateInput,
 } from "../schema";
 
 function slugify(word: string): string {
@@ -15,16 +17,16 @@ function slugify(word: string): string {
     .replace(/[^a-z0-9-]/g, "");
 }
 
-function buildLangs(input: Record<string, unknown>): Record<string, LangEntry> {
+function buildLangs(
+  input: SubmitInput | UpdateInput,
+): Record<string, LangEntry> {
   const langs: Record<string, LangEntry> = {};
   for (const k of languageKeys) {
-    const word = input[`${k}_word`] as string | undefined;
+    const word = input[`${k}_word`];
     if (word) {
       const entry: LangEntry = { word };
-      const gender = input[`${k}_gender`] as string | undefined;
-      const transliteration = input[`${k}_transliteration`] as
-        | string
-        | undefined;
+      const gender = input[`${k}_gender`];
+      const transliteration = input[`${k}_transliteration`];
       if (gender) entry.gender = gender;
       if (transliteration) entry.transliteration = transliteration;
       langs[k] = entry;
